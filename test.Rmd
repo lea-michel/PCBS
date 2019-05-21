@@ -1,22 +1,50 @@
+---
+title: "Analyse de données sur le Childhood Trauma Questionnaire"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+# **Introduction**
+Le Childhood Trauma Questionnaire est un questionnaire developpe en 1994 par Bernstein et al. Il contient cinq échelles de maltraitance : l'abus emotionnel, l'abus physique, l'abus sexuel, la negligenceemotionnelle et la negligence physique. Il existe en version longue avec 70 items et une version courte avec 28 items, 5 items par échelle et 3 items qui mesurent la minimisation du participant par rapport a ce qu'il a vecu. Ces données regroupe les resultats des questionnaires de 25 etudes dans differents pays chez des participants sains ou des patients.
+
+```{r}
 library(readr)
 library(ggplot2)
 library(plyr)
 library(knitr)
-donnees <- read_delim("~/L�a/Cogmaster/Projet AE/Donn�es/donnees.CSV", 
+donnees <- read_delim("~/Léa/Cogmaster/Projet AE/Données/donnees.CSV", 
                       ";", escape_double = FALSE, trim_ws = TRUE)
-#Structurer les donn�es
+```
+
+# **Nettoyage des données**
+Les données brutes telles que je les ai récupérées sur Internet n'étaient pas très claires, j'ai donc remplacer les chiffres par les catégories comme pour le genre ou la langue du questionnaire.
+De plus elles contenaient beaucoup de NA. J'ai pris la décision d'enlever les lignes contenant des NA pour faciliter l'analyse de données par la suite.
+
+
+```{r}
 donnees[donnees==999]<-NA
-#creer dataframe sans na      
 donnees<-na.omit(donnees)
 donnees$Gender<-factor(donnees$Gender, levels = c(1,2), labels = c("male", "female"))
 donnees$Population<-factor(donnees$Population, levels = c(1,2,3), labels = c("patient", "healthy", "healthy"))
 donnees$Language<-factor(donnees$Language, levels=c(1,2,3,4,5,7,8), labels = c("english","german","swedish","korean","dutch","turkish","norwegian"))
 
-##Donn�es sur les participants
-#Moyenne de l'age
-m_age<-mean(donnees$Age)
-hist(donnees$Age)
-#Compter le nombre de femmes
+```
+
+# **Analyse des participants**
+J'ai commencé par reprendre les caractéristiques des 15997 participants données par la table de données.
+
+### Age
+Cette variable correspond à l'âge où les participants ont rempli le test.
+```{r}
+moy_age<-mean(donnees$Age)
+print(moy_age)
+Age<-donnees$Age
+hist(Age)
+```
+
+### Genre
+```{r}
 gender<-donnees[['Gender']]
 gender<-as.numeric(gender)
 female<-0
@@ -35,27 +63,10 @@ number<-c(male,female)
 percentage<-c(male/N*100,female/N*100)
 donnees_gender<-data.frame(gender_of_participants, number, percentage)
 kable(donnees_gender)
+```
 
-#patients/sains
-population<-donnees[['Population']]
-population<-as.numeric(population)
-patient<-0
-healthy<-0
-for(x in population) {
-  if(x==1){
-    patient<-patient+1
-  }
-  else{
-    healthy<-healthy+1
-  }
-}
-health_of_participants<-c("healthy","patient")
-number<-c(healthy,patient)
-percentage<-c(healthy/N*100,patient/N*100)
-donnees_health<-data.frame(health_of_participants, number, percentage)
-kable(donnees_health)
-
-#origine
+### Langue du questionnaire
+```{r}
 origin<-donnees[['Language']]
 origin<-as.numeric(origin)
 english<-0
@@ -95,17 +106,49 @@ percentage<-c(english/N*100,german/N*100,swedish/N*100,korean/N*100,dutch/N*100,
 donnees_language<-data.frame(language, number, percentage)
 kable(donnees_language)
 Language_bar<-data.frame(language, number)
-barplot(table(donnees$Language), main="Language Distribution", xlab="Language") 
-#barplot(number,names.arg=language, main="Language Distribution", xlab="Language") 
 
+barplot(table(donnees$Language), main="Language Distribution", xlab="Language")  
+```
+
+### Santé
+Ici le manque d'informations sur les patients m'a amené à séparer les participants entre les catégories "sains" et "patients". Chaque étude ne donnait que peu d'information sur la pathologie exacte de chaque participant et ce n'était pas non plus mentionné dans le tableau de donnée brut.
+Parmi les pathologies on retrouve notamment des cas de dépression, de schizophrénie, d'addiction ou d'anxiété.
+
+```{r}
+population<-donnees[['Population']]
+population<-as.numeric(population)
+patient<-0
+healthy<-0
+for(x in population) {
+  if(x==1){
+    patient<-patient+1
+  }
+  else{
+    healthy<-healthy+1
+  }
+}
+health_of_participants<-c("healthy","patient")
+number<-c(healthy,patient)
+percentage<-c(healthy/N*100,patient/N*100)
+donnees_health<-data.frame(health_of_participants, number, percentage)
+kable(donnees_health)
+```
+Toutes ces données constituent les caractéristiques de nos participants, voici un extrait de ce tableau de données.
+```{r}
 donnees_participants<-donnees[,c("Age","Gender","Language","Population" )]
+kable(head(donnees_participants))
+```
 
+# **Vérification des calculs**
 
-#V�rifier les calculs 
+## Création d'un dateframe avec les résultats bruts
+```{r}
 donnees_questionnaires<-donnees[,c("ctq1","ctq2","ctq3","ctq4","ctq5","ctq6","ctq7","ctq8","ctq9","ctq10","ctq11","ctq12","ctq13","ctq14","ctq15","ctq16","ctq17","ctq18","ctq19","ctq20","ctq21","ctq22","ctq23","ctq24","ctq25","ctq26","ctq27","ctq28")]
 
-#besoin d'inverser les r�sultats
-#mutate(donnees_questionnaires,ctq2R=ifelse(donnees_questionnaires$ctq2==1,5))
+```
+## Inversion de certains scores
+Quelques items sont notés sur une échelle inverse, par exemple une note de 1 vaut un score de 5.
+```{r}
 donnees_questionnaires$ctq2R<-NA
 i=1
 for (x in donnees_questionnaires[["ctq2"]]){
@@ -247,6 +290,10 @@ for (x in donnees_questionnaires[["ctq28"]]){
   }   
   i=i+1
 }
+```
+## Score de minimisation
+Pour les trois items qui calculent la minimisation du trauma passé, ils sont scorés avec un 1 si le participant a noté 5, 0 sinon.
+```{r}
 donnees_questionnaires$ctq10D<-NA
 i=1
 for (x in donnees_questionnaires[["ctq10"]]){
@@ -307,35 +354,31 @@ for (x in donnees_questionnaires[["ctq22"]]){
   }   
   i=i+1
 }
+```
+## Calcul des échelles de maltraitance
+```{r}
 donnees_questionnaires$Score_emotional_abuse<-donnees_questionnaires$ctq3+donnees_questionnaires$ctq8+donnees_questionnaires$ctq14+donnees_questionnaires$ctq18+donnees_questionnaires$ctq25
+
 donnees_questionnaires$Score_physical_abuse<-donnees_questionnaires$ctq9+donnees_questionnaires$ctq11+donnees_questionnaires$ctq12+donnees_questionnaires$ctq15+donnees_questionnaires$ctq17
+
 donnees_questionnaires$Score_sexual_abuse<-donnees_questionnaires$ctq20+donnees_questionnaires$ctq21+donnees_questionnaires$ctq23+donnees_questionnaires$ctq24+donnees_questionnaires$ctq27
+
 donnees_questionnaires$Score_physical_neglect<-donnees_questionnaires$ctq1+donnees_questionnaires$ctq2R+donnees_questionnaires$ctq4+donnees_questionnaires$ctq6+donnees_questionnaires$ctq26R
+
 donnees_questionnaires$Score_emotional_neglect<-donnees_questionnaires$ctq5R+donnees_questionnaires$ctq7R+donnees_questionnaires$ctq13R+donnees_questionnaires$ctq19R+donnees_questionnaires$ctq28R
+
 donnees_questionnaires$Score_minimization<-donnees_questionnaires$ctq10D+donnees_questionnaires$ctq16D+donnees_questionnaires$ctq22D
+kable(head(donnees_questionnaires))
+```
+## Vérification
+On vérifie que ces calculs nous donnent bien les mêmes résultats que sur le tableau de données de départ.
 
-#analyse des r�sultats en fonction des caract�ristiques des participants
-ggplot(data=donnees) +
-  geom_boxplot(aes(x=Population,y=EA_total), varwidth = TRUE)+
-  facet_wrap(~Language)
+
+# **Analyse des résultats en fonction des caractéristiques des participants**
+```{r}
+
+```
 
 
-#Gender/SA_total
-SA_female<-subset(donnees,Gender==2,select=SA_total)
-mean_SA_female<-mean(SA_female$SA_total,na.rm = TRUE)
-SA_male<-subset(donnees,Gender==1,select=SA_total)
-mean_SAm<-mean(SA_male$SA_total,na.rm = TRUE)
-SA_gender<-donnees[,c("Gender","SA_total")]
-t.test(data=SA_gender, SA_total ~ Gender)
 
-#Health/EA_total
-EA_health<-donnees[,c("Population","EA_total")]
-t.test(data=EA_health, EA_total ~ Population)
 
-#Health/PA_total
-PA_health<-donnees[,c("Population","PA_total")]
-t.test(data=PA_health, PA_total ~ Population)
-
-#Health/SA_total
-SA_health<-donnees[,c("Population","SA_total")]
-t.test(data=SA_health, SA_total ~ Population)

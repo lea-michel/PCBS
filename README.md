@@ -6,3 +6,10 @@ Le début a été très difficile car j'ai dû apprendre toutes les bases d'un n
 J'ai choisi de travailler sur le Childhood Trauma Questionnaire qui mesure le score de maltraitance subie dans l'enfance. Il mesure cinq types de maltraitances différentes et aussi un score de minimisation ou déni de la maltraitance subie.
 Ce choix a été motivé par un intérêt poussé pour l'impact de la maltraitance infantile sur le système cognitif chez l'enfant et chez l'adulte. Ce cours m'a donc permis d'apprendre à coder en R et en R.markdown et de me familiariser avec ce questionnaire et ses scores.
 
+Le script R : https://github.com/lea-michel/PCBS/blob/master/Script.R
+Le script R.markdown associé : https://github.com/lea-michel/PCBS/blob/master/test.Rmd
+
+Annexes : 
+Le tableau de données brutes : https://github.com/lea-michel/PCBS/blob/master/donnees.CSV
+L'article où j'ai trouvé ces données : 
+Supplementary data de cet article : 

@@ -3,6 +3,8 @@ title: "Analyse de donnees sur le Childhood Trauma Questionnaire"
 output:
   html_document: default
   html_notebook: default
+  pdf_document: default
+  word_document: default
 ---
 
 # **Introduction**
@@ -13,13 +15,14 @@ library(readr)
 library(ggplot2)
 library(plyr)
 library(knitr)
-donnees <- read_delim("~/Léa/Cogmaster/Projet AE/Données/donnees.CSV", 
+library(Rmisc)
+donnees <- read_delim("~/Lea/Cogmaster/Projet AE/Données/donnees.CSV", 
                       ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 # **Nettoyage des donnees**
-Les donnees brutes telles que je les ai recuperees sur Internet n'etaient pas tres claires, j'ai donc remplace les chiffres par les categories corespondantes comme pour le genre ou la langue du questionnaire. J'ai aussi ajouté la colonne "CTQ_severity" qui n'est pas présente dans le tableau de données mais qui est utilisé dans l'article correspondant.
-De plus elles contenaient beaucoup de NA. J'ai pris la decision d'enlever les lignes contenant des NA pour faciliter l'analyse de donnees par la suite et étant donné qu'il y a assez de participants pour se le permettre.
+Les donnees brutes telles que je les ai recuperees sur Internet n'etaient pas tres claires, j'ai donc remplace les chiffres par les categories corespondantes comme pour le genre ou la langue du questionnaire. J'ai aussi ajoute la colonne "CTQ_severity" qui n'est pas presente dans le tableau de donnees mais qui est utilisee dans l'article correspondant.
+De plus les donnees brutes contenaient beaucoup de NA. J'ai pris la decision d'enlever les lignes en contenant pour faciliter l'analyse de donnees par la suite ,etant donne qu'il y a assez de participants pour se le permettre.
 
 
 ```{r}
@@ -59,15 +62,21 @@ donnees$CTQ_severity<-factor(donnees$CTQ_severity, levels = c(1,2,3,4), labels =
 J'ai commence par reprendre les caracteristiques des 15997 participants donnees par la table de donnees.
 
 ### Age
-Cette variable correspond a l'age où les participants ont rempli le test.
+Cette variable correspond a l'age ou les participants ont rempli le test.
 ```{r}
 moy_age<-mean(donnees$Age)
-print(moy_age)
+print(summary(donnees$Age))
+```
+
+Les participants ont entre 9 et 90 ans avec une moyenne d'age a 37 ans.
+```{r}
 Age<-donnees$Age
 hist(Age)
 ```
 
+
 ### Genre
+Les donnees comptent 36% d'hommes et 64% de femmes.
 ```{r,warning=FALSE,error=FALSE,message=FALSE}
 gender<-donnees[['Gender']]
 gender<-as.numeric(gender)
@@ -90,6 +99,7 @@ kable(donnees_gender)
 ```
 
 ### Langue du questionnaire
+Les donnees ont ete recuperees de recherches dans plusieurs pays, les questionnaires ont donc ete remplis dans differentes langues, majoritairement en anglais et en allemand. 
 ```{r}
 origin<-donnees[['Language']]
 origin<-as.numeric(origin)
@@ -124,18 +134,18 @@ for(x in origin) {
   }
 }
 
-language<-c("english","german","swedish","korean","dutch","turkish","norwegian")
+language<-c("anglais","allemand","suedois","coreen","neerlandais","turque","norvegien")
 number<-c(english,german,swedish,korean,dutch,turkish,norwegian)
 percentage<-c(english/N*100,german/N*100,swedish/N*100,korean/N*100,dutch/N*100,turkish/N*100,norwegian/N*100)
 donnees_language<-data.frame(language, number, percentage)
 kable(donnees_language)
-Language_bar<-data.frame(language, number)
 barplot(table(donnees$Language), main="Language Distribution", xlab="Language")  
 ```
 
 ### Sante
-Ici le manque d'informations sur les patients m'a amene a separer les participants entre les categories "sains" et "patients" seulement comme fait dans le tableau de donnees. Chaque etude ne donnait que peu d'information sur la pathologie exacte de chaque participant et ce n'etait pas non plus mentionne dans le tableau de donnee brutes.
+Ici le manque d'informations sur les patients m'a amene a separer les participants entre les categories "sains" et "patients" seulement, comme fait dans le tableau de donnees. Chaque etude ne donnait que peu d'information sur la pathologie exacte de chaque participant et ce n'etait pas non plus mentionne dans le tableau de donnees brutes.
 Parmi les pathologies on retrouve notamment des cas de depression, de schizophrenie, d'addiction ou d'anxiete.
+Les donnees representent 29% de patients et 71% de participants sains.
 
 ```{r}
 population<-donnees[['Population']]
@@ -167,7 +177,7 @@ kable(head(donnees_participants))
 # **Verification des calculs**
 Dans un soucis d'exactitude et pour pouvoir moi-meme me familiariser avec ce questionnaires j'ai entierement recalcule chaque echelle et je les ai ensuite comparees avec les resultats du tableau de donnees brutes.
 
-## Creation d'un dateframe avec les resultats bruts
+## Creation d'un dataframe avec les resultats bruts
 ```{r}
 donnees_questionnaires<-donnees[,c("ctq1","ctq2","ctq3","ctq4","ctq5","ctq6","ctq7","ctq8","ctq9","ctq10","ctq11","ctq12","ctq13","ctq14","ctq15","ctq16","ctq17","ctq18","ctq19","ctq20","ctq21","ctq22","ctq23","ctq24","ctq25","ctq26","ctq27","ctq28")]
 
@@ -406,56 +416,65 @@ all(donnees$MD_dichot==donnees_questionnaires$Score_MD)
 Dans cette troisieme partie j'analyse les donnees a partir des commentaires de l'article.
 
 ## Donnees generales sur chaque echelle 
+
+### Abus physique
 ```{r}
 Physical_abuse<-donnees$PA_total
 moy_PA<-mean(Physical_abuse)
 sd_PA<-sd(Physical_abuse)
-print(moy_PA)
-print(sd_PA)
 hist(Physical_abuse)
+```
 
+### Abus emotionnel
+```{r}
 Emotional_abuse<-donnees$EA_total
 moy_EA<-mean(Emotional_abuse)
 sd_EA<-sd(Emotional_abuse)
-print(moy_EA)
-print(sd_EA)
 hist(Emotional_abuse)
+```
 
+### Abus sexuel
+```{r}
 Sexual_abuse<-donnees$SA_total
 moy_SA<-mean(Sexual_abuse)
 sd_SA<-sd(Sexual_abuse)
-print(moy_SA)
-print(sd_SA)
 hist(Sexual_abuse)
+```
 
+### Negligence emotionnelle
+```{r}
 Emotional_neglect<-donnees$EN_total
 moy_EN<-mean(Emotional_neglect)
 sd_EN<-sd(Emotional_neglect)
-print(moy_EN)
-print(sd_EN)
 hist(Emotional_neglect)
+```
 
+### Negligence physique
+```{r}
 Physical_neglect<-donnees$PN_total
 moy_PN<-mean(Physical_neglect)
 sd_PN<-sd(Physical_neglect)
-print(moy_PN)
-print(sd_PN)
 hist(Physical_neglect)
+```
 
+### Score total
+```{r}
 Childhood_trauma_questionnaire<-donnees$CTQ_total
 moy_CTQ<-mean(Childhood_trauma_questionnaire)
 sd_CTQ<-sd(Childhood_trauma_questionnaire)
-print(moy_CTQ)
-print(sd_CTQ)
 hist(Childhood_trauma_questionnaire)
+```
 
+### Score de minimisation
+```{r}
 Minimization<-donnees$MD_dichot
 moy_MD<-mean(Minimization)
 sd_MD<-sd(Minimization)
-print(moy_MD)
-print(sd_MD)
 hist(Minimization)
+```
 
+### Tableau resume
+```{r}
 moyenne_des_echelles<-c("PA_total","EA_total","SA_total","PN_total","EN_total","CTQ_total","MD_total")
 moyenne<-c(moy_PA,moy_EA,moy_SA,moy_PN,moy_EN,moy_CTQ,moy_MD)
 sd<-c(sd_PA,sd_EA,sd_SA,sd_PN,sd_EN,sd_CTQ,sd_MD)
@@ -464,6 +483,7 @@ kable(donnees_echelles)
 ```
 
 ## Donnees du questionnaire en fonction de la sante des participants
+Il aurait ete interessant d'avoir une colonne qui specifie le probleme de chaque patient pour voir les interactions entre les maltraitances subies et la maladie detectee a l'age adulte.
 ###Sur les echelles
 ```{r,warning=FALSE,error=FALSE,message=FALSE}
 donnees_patient<-subset(donnees,Population=="patient",select=c(PA_total,EA_total,SA_total,PN_total,EN_total,CTQ_total,MD_dichot))
@@ -549,13 +569,150 @@ donnees_severite_sain_patient<-data.frame(echantillon,absence,absence_percentage
 kable(donnees_severite_sain_patient)
 ```
 
+## Resultats du score total du CTQ en fonction des caracteristiques des participants
 
 ```{r}
 ggplot(data=donnees) +
-  geom_boxplot(aes(x=Population,y=EA_total), varwidth = TRUE)+
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)+
   facet_wrap(~Language)
+```
+On voit la distribution du score total du questionnaire en fonction de la sante du participant et de sa langue.Il manque des donnees pour certaines categories mais on voit en general que les patients ont un score plus eleve que les participants sains.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Language)
+```
+On voit la distribution du score total du questionnaire en fonction du sexe du participant et de sa langue.On voit en general que les femmes ont un score plus eleve que les hommes.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Population)
+```
+On voit la distribution du score total du questionnaire en fonction de la sante du participant et de son sexe. On voit en general que les patientes ont un score plus eleve que les participants sains et les patients.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Language,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Gender)
+```
+On voit la distribution du score total du questionnaire en fonction de la langue du participant et de son sexe. On voit en general que les femmes ont un score plus eleve que les hommes et des disparites selon les pays, potentiellement du a des effectifs faibles comme 163 pour les coreens.
+
+## Comparaison sur les differences dans le score total du CTQ en fonction des caracteristiques des participants
+On verifie que les differences observees dans les boxplot sont bien significatives avec un t-test. 
+Avant tout test je verifie les conditions du t-test, c'est-a-dire si les deux groupes d'echantillon suivent une loi normale et si leur variance sont egales.
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)
+var.test(CTQ_total ~ Population, data=donnees)
+```
+Les variances des deux echantillons sains et patients sont trop differentes pour faire un t-test.
+
+```{r}
+hist(donnees$CTQ_total)
+```
+Il n'est pas possible de verifier la normalite des deux groupes car la base de donnees est trop grande pour faire un test de Shapiro-Wilk. On regarde donc l'histogramme des donnees pour se faire une idee de la distibution des donnees. On observe que la distribution des donnees suit une loi exponentielle, il n'est donc pas possible de realiser un t-test.
+J'ai donc eu recours a un test non-parametrique, le test de Wilcoxon pour comparer les moyennes de mes deux echantillons.
+```{r}
+wilcox.test(CTQ_total ~ Population, data=donnees)
+```
+La p-value est bien inferieure a 0.05, les deux groupes sont significativement differents. Donc les patients ont bien significativement un score de CTQ plus eleves que les participants sains. C'est potentiellement le fait qu'ils aient vecu de la maltraitance infantile qu'ils ont developpe des troubles psychiatriques.
+De la meme facon on compare les resultats selon le genre des participants.
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)
+wilcox.test(CTQ_total ~ Gender, data=donnees)
+```
+Les femmes ont un score de CTQ significativement plus important que les hommes. Cela n'a rien d'etonnant, en France selon l'OMS rien que pour l'abus sexuel 1 femme sur 5 dit en avoir subi et 1 homme sur 13.
+
+## Quel type de maltraitance le participant a le plus subie
+Dans cette partie j'ai rajoute deux colonnes, une qui represente le type de maltraitance que le participant a le plus subie et une qui note le score de l'echelle du type de maltraitance que le participant a le plus subie.
+
+```{r}
+i=1
+donnees$type<-0
+donnees$type_total<-0
+nombre_PA=0
+nombre_EA=0
+nombre_SA=0
+nombre_PN=0
+nombre_EN=0
+for(x in donnees[["CTQ_total"]]){
+  maximum=max(donnees$PA_total[i],donnees$EA_total[i],donnees$SA_total[i],donnees$PN_total[i],donnees$EN_total[i])
+  if (donnees$PA_total[i]==maximum){
+    donnees$type[i]<-"PA"
+    donnees$type_total[i]<-donnees$PA_total[i]
+    nombre_PA=nombre_PA+1
+  }
+  if (donnees$EA_total[i]==maximum){
+    donnees$type[i]<-"EA"
+    donnees$type_total[i]<-donnees$EA_total[i]
+    nombre_EA=nombre_EA+1
+  }
+  if (donnees$SA_total[i]==maximum){
+    donnees$type[i]<-"SA"
+    donnees$type_total[i]<-donnees$SA_total[i]
+    nombre_SA=nombre_SA+1
+  }
+  if (donnees$PN_total[i]==maximum){
+    donnees$type[i]<-"PN"
+    donnees$type_total[i]<-donnees$PN_total[i]
+    nombre_PN=nombre_PN+1
+  }
+  if (donnees$EN_total[i]==maximum){
+    donnees$type[i]<-"EN"
+    donnees$type_total[i]<-donnees$EN_total[i]
+    nombre_EN=nombre_EN+1
+  }
+  i=i+1
+}
+effectif_echelle_majeure<-c(nombre_PA,nombre_EA,nombre_SA,nombre_PN,nombre_EN)
+barplot(effectif_echelle_majeure,names.arg = c("nombre_PA","nombre_EA","nombre_SA","nombre_PN","nombre_EN"))
+
+```
+On observe que la negligence emotionnelle est le type de maltraitance le plus commun parmi les sujets. On ne peut pas vraiment juger plus puisque que ce diagramme represente juste la maltraitance que le participant a le plus subie etant enfant, ca ne prend donc pas en compte des participants qui n'ont pas reporte de maltraitance ou de ceux qui avaient peut-etre plusieurs scores au meme niveau.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~type)
+```
+Ce graphique represente le score de CTQ total par rapport a la sante des participants et la maltraitance principale qu'ils ont subie. On remarque que c'est principalement les victimes  d'abus sexuels qui ont un score total plus important, cela pourrait traduire le fait qu'ils subissent differents types de maltraitance en plus des violences sexuelles.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=type_total), varwidth = TRUE)+
+  facet_wrap(~type)
+```
+Ce graphique represente le score de la maltraitance principale subie par rapport a la sante des participants et la maltraitance principale qu'ils ont subie. On observe que dans la majorite des cas les patients ont un score beaucoup plus importants que les participants sains peu importe le type de maltraitance et que comme precedemment c'est le score d'abus sexuel qui est le plus important.
+
+## Interaction entre les variables de genre et les variables sur la sante
+
+```{r}
+sommaire <- summarySE(donnees,measurevar="CTQ_total",groupvars=c("Population","Gender"))
+p <- position_dodge(0.1) 
+ggplot(sommaire, aes(x=Population, y=CTQ_total, colour=Gender, group=Gender)) + 
+  geom_errorbar(aes(ymin=CTQ_total-ci, ymax=CTQ_total+ci), width=.1, position=p) +
+  geom_line(position=p, size=2) +
+  geom_point(position=p, size=1)+
+  theme_classic()
+```
+On observe une interaction entre le sexe et l'etat de sante des participants sur le score de maltraitance total. Les participantes ont un score total de maltraitance plus eleve que les hommes quel que soit leur etat de sante. Les patients quel que soit leur sexe ont un score plus eleve que les participants sains. On remarque que le fait d'etre une patiente augmente le score de maltraitance plus que le fait d'etre juste une femme ou juste un patient.
+
+## Score de minimisation par type de maltraitance la plus subie
+Le score de minimisation peut aller de 1 a 3 et represente la minimisation de la maltraitance subie dans l'enfance.
+
+```{r}
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=MD_dichot), varwidth = TRUE)+
+  facet_wrap(~type)
 ```
 
 ```{r}
-
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=MD_dichot), varwidth = TRUE)+
+  facet_wrap(~type)
 ```
+On observe dans ces deux graphiques un score de minimisation plus important pour les abus et les negligences physiques que pour les autres types de maltraitance. C'est un resultat interpellant qui meriterait d'autres recherches pour etudier en quoi la maltraitance physique pourrait mener a unn plus grande minimisation par les victimes.
+

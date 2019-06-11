@@ -2,7 +2,9 @@ library(readr)
 library(ggplot2)
 library(plyr)
 library(knitr)
-donnees <- read_delim("~/Léa/Cogmaster/Projet AE/Données/donnees.CSV", 
+library(Rmisc)
+
+donnees <- read_delim("~/Lea/Cogmaster/Projet AE/Données/donnees.CSV", 
                       ";", escape_double = FALSE, trim_ws = TRUE)
 #Structurer les données
 donnees[donnees==999]<-NA
@@ -38,8 +40,10 @@ donnees$CTQ_severity<-factor(donnees$CTQ_severity, levels = c(1,2,3,4), labels =
 
 ##Données sur les participants
 #Moyenne de l'age
-m_age<-mean(donnees$Age)
-hist(donnees$Age)
+moy_age<-mean(donnees$Age)
+print(summary(donnees$Age))
+Age<-donnees$Age
+hist(Age)
 
 #Compter le nombre de femmes
 genre<-donnees[['Gender']]
@@ -60,25 +64,6 @@ effectif<-c(male,femelle)
 pourcentage<-c(male/N*100,femelle/N*100)
 donnees_genre<-data.frame(genre_des_participants,effectif,pourcentage)
 kable(donnees_genre)
-
-#patients/sains
-population<-donnees[['Population']]
-population<-as.numeric(population)
-patient<-0
-sain<-0
-for(x in population) {
-  if(x==1){
-    patient<-patient+1
-  }
-  else{
-    sain<-sain+1
-  }
-}
-sante_des_participants<-c("sain","patient")
-effectif<-c(sain,patient)
-pourcentage<-c(sain/N*100,patient/N*100)
-donnees_sante<-data.frame(sante_des_participants,effectif,pourcentage)
-kable(donnees_sante)
 
 #origine
 langue<-donnees[['Language']]
@@ -121,16 +106,34 @@ donnees_langues<-data.frame(langues,effective,pourcentage)
 kable(donnees_langues)
 #langues_bar<-data.frame(language, number)
 barplot(table(donnees$Language), main="Distibution des langues", xlab="Langues") 
-#barplot(number,names.arg=language, main="Language Distribution", xlab="Language") 
 
+#patients/sains
+population<-donnees[['Population']]
+population<-as.numeric(population)
+patient<-0
+sain<-0
+for(x in population) {
+  if(x==1){
+    patient<-patient+1
+  }
+  else{
+    sain<-sain+1
+  }
+}
+sante_des_participants<-c("sain","patient")
+effectif<-c(sain,patient)
+pourcentage<-c(sain/N*100,patient/N*100)
+donnees_sante<-data.frame(sante_des_participants,effectif,pourcentage)
+kable(donnees_sante)
+
+#Aperçu du tableau
 donnees_participants<-donnees[,c("Age","Gender","Language","Population" )]
-
+kable(head(donnees_participants))
 
 #Vérifier les calculs 
 donnees_questionnaires<-donnees[,c("ctq1","ctq2","ctq3","ctq4","ctq5","ctq6","ctq7","ctq8","ctq9","ctq10","ctq11","ctq12","ctq13","ctq14","ctq15","ctq16","ctq17","ctq18","ctq19","ctq20","ctq21","ctq22","ctq23","ctq24","ctq25","ctq26","ctq27","ctq28")]
 
 #besoin d'inverser les résultats
-#mutate(donnees_questionnaires,ctq2R=ifelse(donnees_questionnaires$ctq2==1,5))
 donnees_questionnaires$ctq2R<-NA
 i=1
 for (x in donnees_questionnaires[["ctq2"]]){
@@ -349,30 +352,37 @@ all(donnees$EN_total==donnees_questionnaires$Score_EN)
 all(donnees$MD_dichot==donnees_questionnaires$Score_MD)
 
 #données générales sur chaque échelle
+Physical_abuse<-donnees$PA_total
 moy_PA<-mean(donnees$PA_total)
 sd_PA<-sd(donnees$PA_total)
 hist(donnees$PA_total)
 
+Emotional_abuse<-donnees$EA_total
 moy_EA<-mean(donnees$EA_total)
 sd_EA<-sd(donnees$EA_total)
 hist(donnees$EA_total)
 
+Sexual_abuse<-donnees$SA_total
 moy_SA<-mean(donnees$SA_total)
 sd_SA<-sd(donnees$SA_total)
 hist(donnees$SA_total)
 
+Emotional_neglect<-donnees$EN_total
 moy_EN<-mean(donnees$EN_total)
 sd_EN<-sd(donnees$EN_total)
 hist(donnees$EN_total)
 
+Physical_neglect<-donnees$PN_total
 moy_PN<-mean(donnees$PN_total)
 sd_PN<-sd(donnees$PN_total)
 hist(donnees$PN_total)
 
+Childhood_trauma_questionnaire<-donnees$CTQ_total
 moy_CTQ<-mean(donnees$CTQ_total)
 sd_CTQ<-sd(donnees$CTQ_total)
 hist(donnees$CTQ_total)
 
+Minimization<-donnees$MD_dichot
 moy_MD<-mean(donnees$MD_dichot)
 sd_MD<-sd(donnees$MD_dichot)
 hist(donnees$MD_dichot)
@@ -383,7 +393,7 @@ sd<-c(sd_PA,sd_EA,sd_SA,sd_PN,sd_EN,sd_CTQ,sd_MD)
 donnees_echelles<-data.frame(moyenne_des_echelles,effectif,sd)
 kable(donnees_echelles)
 
-#analyse des résultats en fonction des caractéristiques des participants
+#analyse des résultats en fonction de la sante des participants
 #résultats échelles en fonction participants
 donnees_patient<-subset(donnees,Population=="patient",select=c(PA_total,EA_total,SA_total,PN_total,EN_total,CTQ_total,MD_dichot))
 moy_PA_patient<-mean(donnees_patient$PA_total)
@@ -465,41 +475,98 @@ severe_percentage<-c(round(PA_sain_severite[4,2]/11375*100,1),round(PA_patient_s
 donnees_severite_sain_patient<-data.frame(echantillon,absence,absence_percentage,faible,faible_percentage,modere,modere_percentage,severe,severe_percentage)
 kable(donnees_severite_sain_patient)
 
-#corrélation de spearman: cor.test(x,y, method="spearman")
-r_CTQ/sante<-cor.test(donnees$CTQ_total,donnees$Population, method="spearman")
+#plot de CTQ en fonction participants
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Language)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Language)
+geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Population)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Gender)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Language)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Language,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Population)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Language,y=CTQ_total), varwidth = TRUE)+
+  facet_wrap(~Gender)
+
+#Comparaison sur les differences dans le score total du CTQ en fonction des caracteristiques des participants
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=CTQ_total), varwidth = TRUE)
+var.test(CTQ_total ~ Population, data=donnees)
+hist(donnees$CTQ_total)
+wilcox.test(CTQ_total ~ Population, data=donnees)
 
 ggplot(data=donnees) +
-  geom_boxplot(aes(x=Population,y=EA_total), varwidth = TRUE)+
-  facet_wrap(~Language)
+  geom_boxplot(aes(x=Gender,y=CTQ_total), varwidth = TRUE)
+wilcox.test(CTQ_total ~ Gender, data=donnees)
 
+#Rajouter une colonne pour savoir quel type de maltraitance le participant a le plus subi
+i=1
+donnees$type<-0
+donnees$type_total<-0
+nombre_PA=0
+nombre_EA=0
+nombre_SA=0
+nombre_PN=0
+nombre_EN=0
+for(x in donnees[["CTQ_total"]]){
+  maximum=max(donnees$PA_total[i],donnees$EA_total[i],donnees$SA_total[i],donnees$PN_total[i],donnees$EN_total[i])
+  if (donnees$PA_total[i]==maximum){
+    donnees$type[i]<-"PA"
+    donnees$type_total[i]<-donnees$PA_total[i]
+    nombre_PA=nombre_PA+1
+  }
+  if (donnees$EA_total[i]==maximum){
+    donnees$type[i]<-"EA"
+    donnees$type_total[i]<-donnees$EA_total[i]
+    nombre_EA=nombre_EA+1
+  }
+  if (donnees$SA_total[i]==maximum){
+    donnees$type[i]<-"SA"
+    donnees$type_total[i]<-donnees$SA_total[i]
+    nombre_SA=nombre_SA+1
+  }
+  if (donnees$PN_total[i]==maximum){
+    donnees$type[i]<-"PN"
+    donnees$type_total[i]<-donnees$PN_total[i]
+    nombre_PN=nombre_PN+1
+  }
+  if (donnees$EN_total[i]==maximum){
+    donnees$type[i]<-"EN"
+    donnees$type_total[i]<-donnees$EN_total[i]
+    nombre_EN=nombre_EN+1
+  }
+  i=i+1
+}
+effectif_echelle_majeure<-c(nombre_PA,nombre_EA,nombre_SA,nombre_PN,nombre_EN)
+barplot(effectif_echelle_majeure,names.arg = c("nombre_PA","nombre_EA","nombre_SA","nombre_PN","nombre_EN"))
 
-#Gender/SA_total
-SA_femelle<-subset(donnees,Gender==2,select=SA_total)
-moy_SA_femelle<-mean(SA_femelle$SA_total,na.rm = TRUE)
-SA_male<-subset(donnees,Gender==1,select=SA_total)
-moy_SA_male<-mean(SA_male$SA_total,na.rm = TRUE)
-SA_genre<-donnees[,c("Gender","SA_total")]
-t.test(data=SA_genre, SA_total ~ Gender)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=type_total), varwidth = TRUE)+
+  facet_wrap(~type)
 
-#Health/EA_total
-EA_sante<-donnees[,c("Population","EA_total")]
-t.test(data=EA_sante, EA_total ~ Population)
+#Interaction entre les variables de genre et les variables sur la sante
+sommaire <- summarySE(donnees,measurevar="CTQ_total",groupvars=c("Population","Gender"))
+p <- position_dodge(0.1) 
+ggplot(sommaire, aes(x=Population, y=CTQ_total, colour=Gender, group=Gender)) + 
+  geom_errorbar(aes(ymin=CTQ_total-ci, ymax=CTQ_total+ci), width=.1, position=p) +
+  geom_line(position=p, size=2) +
+  geom_point(position=p, size=1)+
+  theme_classic()
 
-#Health/PA_total
-PA_sante<-donnees[,c("Population","PA_total")]
-t.test(data=PA_sante, PA_total ~ Population)
+# Score de minimisation par type de maltraitance la plus subie
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Population,y=MD_dichot), varwidth = TRUE)+
+  facet_wrap(~type)
 
-#Health/SA_total
-SA_sante<-donnees[,c("Population","SA_total")]
-t.test(data=SA_sante, SA_total ~ Population)
-
-#Essai anova
-par(mfrow=c(1,2)) 
-plot(donnees$Population,donnees$PA_total)
-plot(donnees$Gender,donnees$PA_total)
-par(mfrow=c(1,2))
-interaction.plot(donnees$Population,donnees$Gender,donnees$PA_total)
-interaction.plot(donnees$Gender,donnees$Population,donnees$PA_total)
-PA_aov<-aov(donnees$PA_total ~ donnees$Population*donnees$Gender)
-summary(PA_aov)
-anova(PA_aov)
+ggplot(data=donnees) +
+  geom_boxplot(aes(x=Gender,y=MD_dichot), varwidth = TRUE)+
+  facet_wrap(~type)

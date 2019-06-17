@@ -11,5 +11,6 @@ Le script R.markdown associé : https://github.com/lea-michel/PCBS/blob/master/t
 
 Annexes : 
 Le tableau de données brutes : https://github.com/lea-michel/PCBS/blob/master/donnees.CSV
-L'article où j'ai trouvé ces données : 
-Supplementary data de cet article : 
+L'article où j'ai trouvé ces données : https://github.com/lea-michel/PCBS/blob/master/journal.pone.0146058.PDF
+Supplementary data de cet article : https://github.com/lea-michel/PCBS/blob/master/journal.pone.0146058.s002.DOCX
+
